@@ -1,0 +1,121 @@
+---
+title: "Homework_Final"
+author: "Felipe do Amaral Silva"
+date: "21/02/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Vamos criar uma avaliação de escolaridade e rendimento familiar para observar a situação escolar de crianças e adolescentes do brasil durante a pandemia por faixa de renda.
+Neste homework a base de dados utilizada é do [IBGE](https://www.ibge.gov.br/estatisticas/sociais/trabalho/27946-divulgacao-semanal-pnadcovid1.html?=&t=microdados).
+
+Carregando os pacotes
+```{r}
+#install.packages('srvyr')
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(tidyverse) # Manipular dados
+library(srvyr) # Trabalha com amostras complexas
+library(readr) # carregar dados no R
+library(readxl) #carregar dados do excel
+
+```
+
+Carregando os microdados da PNAD COVID
+```{r}
+
+pnad_covid <- read_csv("PNAD_COVID_112020.csv", col_types = cols(.default = "d"))
+
+```
+
+Definindo os pesos e uma base a nível Brasil
+```{r}
+pnad_Brasil <- pnad_covid %>%
+  as_survey_design(
+    ids = UPA,
+    strata = Estrato,
+    weights = V1032,
+    nest = TRUE
+  )
+```
+
+Tratamento
+````{r}
+df_esc_renda <- pnad_Brasil %>% mutate(
+    one = 1,
+    idade = case_when(
+      A002 %in% 04:17 ~ "16-24"
+    ),
+    fre_escola = ifelse(A006 == 1, "Sim", "Não"),
+    faixa_renda = factor(
+      case_when(
+        C01012 <= 1044 ~ "Menos de um salário mínimo",
+  C01012 %in% c(1045:2090) ~ "Entre 1 e 2",
+  C01012 %in% c(2091:3135) ~ "Entre 2 e 3",
+  C01012 %in% c(3136:4180) ~ "Entre 3 e 4",
+  C01012 %in% c(4181:5225) ~ "Entre 4 e 5",
+  C01012 >= 5226 ~ "Mais de 5"),
+    levels = c("Menos de um salário mínimo",
+               "Entre 1 e 2",
+               "Entre 2 e 3",
+               "Entre 3 e 4",
+               "Entre 4 e 5",
+               "Mais de 5"
+    )
+  )
+)
+```
+
+Analytics 
+```{r}
+ds_esc_renda <- df_esc_renda %>%
+  group_by(faixa_renda, idade) %>%
+  summarise(
+    frequenta = survey_total(A006 == 1, na.rm = TRUE),
+    n_frequenta = survey_total(A006 == 2, na.rm = TRUE),
+    total = survey_total(one, na.rm = TRUE)
+    ) %>%
+  mutate(`Frequenta Escola` = (frequenta/total)*100)%>%
+  mutate(n_frequenta_t = (n_frequenta/total)*100)%>%
+  drop_na()
+```
+
+Viz
+```{r}
+gra_renda = ds_esc_renda %>%
+  ggplot(
+    aes(
+      fill = faixa_renda,
+      y = `Frequenta Escola`,
+      x = faixa_renda
+    )
+  ) +
+  geom_bar(position = "dodge", stat = "identity") +
+  geom_text(
+    aes(
+      label = paste0(round(`Frequenta Escola`, 2), "%"),
+      y = `Frequenta Escola` + 3
+    ),
+    size = 3
+  ) +
+  coord_flip() +
+    theme_classic(base_size = 8) +
+  theme(
+    axis.line.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    legend.position = "none"
+  ) +
+  labs(
+    x  = "Faixa Renda", caption = "Fonte: Microdados da Pnad Covid19 - IBGE. Novembro 2020.",
+    title = "Percentual de crianças e adolecentes que frequentam escola por faixa de renda"
+  )
+
+gra_renda
+```
+```

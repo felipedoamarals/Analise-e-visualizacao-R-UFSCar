@@ -1,0 +1,79 @@
+---
+title: "homework_7"
+author: "Felipe do Amaral Silva"
+date: "26/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Neste homework vamos utilizar base de dados disponilizada no https://covid.saude.gov.br/.
+Fonte:
+Ministério da Saúde. Secretaria de Vigilância em Saúde (SVS): Guia de Vigiläncia Epidemiológica do COVID-19.
+Secretarias Municipais e Estaduais de Saúde.
+
+## Bibliotecas
+```{R}
+library(dplyr)     # Manipulação de dados 
+library(tidyr)     # Manipulação de dados
+library(ggplot2)   # Criação de graficos
+library(readxl)    # Leitura de arquivos em Excel
+library(patchwork) # Subplots
+library(scales)    # trabalhar com escalas nos gráficos
+
+```
+
+## Acessando base de dados
+```{R}
+CovidBrasil = read.csv2('HIST_PAINEL_COVIDBR_25dez2020.csv',
+                                                colClasses = c("character", # Regiao
+                                                               "character", # Estado
+                                                               "character", # Municipio
+                                                               "numeric",   # coduf
+                                                               "numeric",   # codmun
+                                                               "numeric",   # codRegiaoSaude
+                                                               "character", # nomeRegiaoSaude
+                                                               "Date",      # data
+                                                               "numeric",   # semanaEpi
+                                                               "numeric",   # populacaoTCU2019
+                                                               "numeric",   # casosAcumulado
+                                                               "numeric",   # casosNovos
+                                                               "numeric",   # obitosAcumulado
+                                                               "numeric",   # obitosNovos
+                                                               "numeric",   # Recuperadosnovos
+                                                               "numeric",   # emAcompanhamentoNovos
+                                                               "factor"     # interior/metropolitana
+                                                               ))
+```
+## Lendo base de dados
+```{R}
+head(CovidBrasil)
+```
+## Filtrando a base de dados para utilizar apenas os dados referente as regiões do Brasil
+```{R}
+coronaregiao=filter(CovidBrasil,  !(CovidBrasil$estado == '') & (CovidBrasil$municipio == ''))
+head(coronaregiao)
+```
+## Criando variável que apresenta "mortes por região"
+```{R}
+mortesPorRegiao <- coronaregiao %>%
+  select(regiao, obitosNovos, data) %>%
+  group_by(regiao, data) %>%
+  summarise(total = sum(obitosNovos))
+```
+## Para este homework utilizei um exemplo de Subplot(face) do ggplot2 para demonstrar o histórico de mortes por região do Brasil
+```{R}
+mortesPorRegiao %>% 
+  ggplot(aes(x = data,
+             y = total)) +
+  labs(
+    title = "COVID-19",
+    subtitle = "(Mortes por regiao)",
+    x = "Regioes",
+    y = "N de mortes",
+    face = "bold"
+  )+
+  geom_point() +
+  facet_wrap(vars(regiao))
+```

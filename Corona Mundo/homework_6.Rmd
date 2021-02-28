@@ -1,0 +1,151 @@
+---
+title: "homework_6"
+author: "Felipe do Amaral Silva"
+date: "26/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+O pacote do coronavírus utilizado fornece um conjunto de dados em formato organizado da epidemia de COVID-19 da doença por coronavírus 2019-2020. Os dados brutos extraídos do repositório Coronavirus do Centro de Ciência e Engenharia de Sistemas da Universidade Johns Hopkins (JHU CCSE).
+
+## Bibliotecas
+```{R}
+#install.packages("devtools")
+#devtools::install_github("RamiKrispin/coronavirus")
+library(ggplot2)
+library(patchwork)
+library(lubridate)
+library(zoo)
+library(dplyr)
+library(coronavirus)
+library(tidyr)
+library(plotly)
+library(reactable)
+library(htmltools)
+#update_dataset()
+```
+## O gráfico mostra a distribuição dos casos de covid-19 no Brasil em 2020.
+```{R}
+coronavirus %>%filter(country=='Brazil')%>%
+  group_by(type, date) %>%
+  summarise(total_cases = sum(cases)) %>%
+  pivot_wider(names_from = type, values_from = total_cases) %>%
+  arrange(date) %>%
+  mutate(active = confirmed - death - recovered) %>%
+  mutate(active_total = cumsum(active),
+                recovered_total = cumsum(recovered),
+                death_total = cumsum(death)) %>%
+  plot_ly(x = ~ date,
+                  y = ~ active_total,
+                  name = 'Casos ativos', 
+                  fillcolor = '#1f77b4',
+                  type = 'scatter',
+                  mode = 'none', 
+                  stackgroup = 'one') %>%
+  add_trace(y = ~ death_total, 
+             name = "Mortes",
+             fillcolor = '#E41317') %>%
+  add_trace(y = ~recovered_total, 
+            name = 'Recuperados', 
+            fillcolor = 'forestgreen') %>%
+  layout(title = "Distribuição de casos de Covid-19 no Brasil",
+         legend = list(x = 0.1, y = 0.9),
+         yaxis = list(title = "Número de casos"),
+         xaxis = list(title = "Source: Johns Hopkins University Center for Systems Science and Engineering"))
+```
+
+## Total de número de casos de covid-19 por país
+```{R}
+#----Base----
+df_daily <- coronavirus %>% 
+  dplyr::group_by(date, type) %>%
+  dplyr::summarise(total = sum(cases, na.rm = TRUE),
+                   .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = type,
+                     values_from = total) %>%
+  dplyr::arrange(date) %>%
+  dplyr::ungroup() %>%
+  dplyr::mutate(active =  confirmed - death - recovered) %>%
+  dplyr::mutate(confirmed_cum = cumsum(confirmed),
+                death_cum = cumsum(death),
+                recovered_cum = cumsum(recovered),
+                active_cum = cumsum(active))
+
+
+df_tree <- coronavirus %>%
+  dplyr::group_by(country, type) %>%
+  dplyr::summarise(total = sum(cases), .groups = "drop") %>%
+  dplyr::mutate(type = ifelse(type == "confirmed", "Confirmed", type),
+                type = ifelse(type == "recovered", "Recovered", type),
+                type = ifelse(type == "death", "Death", type)) %>%
+  tidyr::pivot_wider(names_from = type, values_from = total) %>%
+  dplyr::mutate(Active = Confirmed - Death - Recovered) %>%
+  tidyr::pivot_longer(cols = -country, names_to = "type", values_to = "total")
+
+df_world <- df_tree %>%
+  dplyr::group_by(type) %>%
+  dplyr::summarise(total = sum(total), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = type, values_from = total)
+
+names(df_world) <- tolower(names(df_world))
+```
+Tabela com os dados
+```{R}
+df_rates <- df_tree %>%
+  dplyr::filter(type != "Active") %>%
+  tidyr::pivot_wider(names_from = "type", values_from = "total") %>%
+  dplyr::mutate(recovery_rate = Recovered / Confirmed,
+    death_rate = Death / Confirmed) 
+
+
+bar_chart <- function(label, width = "100%", height = "14px", fill = "#00bfc4", background = NULL) {
+  bar <- htmltools::div(style = list(background = fill, width = width, height = height))
+  chart <- htmltools::div(style = list(flexGrow = 1, marginLeft = "6px", background = background), bar)
+  htmltools::div(style = list(display = "flex", alignItems = "center"), label, chart)
+}
+
+tbl <- reactable::reactable(df_rates,
+                     pagination = FALSE,
+                     highlight = TRUE,
+                     height = 400,
+                     sortable = TRUE,
+                     borderless = TRUE,
+                     defaultPageSize = nrow(df_rates),
+                      defaultSortOrder = "desc",
+                     defaultSorted = "Confirmed",
+                     columns = list(
+                       country = reactable::colDef(name = "Country", minWidth = 50, maxWidth = 100),
+                       Confirmed = reactable::colDef(name = "Confirmed",  minWidth = 50, maxWidth = 100, defaultSortOrder = "desc"),
+                       Recovered = reactable::colDef(name = "Recovered",  minWidth = 50, maxWidth = 100),
+                       Death = reactable::colDef(name = "Death",  minWidth = 50, maxWidth = 100),
+                       recovery_rate = reactable::colDef(name = "Recovery Rate",  minWidth = 50, maxWidth = 200,
+                                                        defaultSortOrder = "desc",
+                                                      cell = function(value) {
+                                                        # Format as percentages with 1 decimal place
+                                                        value <- paste0(format(round(value * 100, 2), nsmall = 1), "%")
+                                                        bar_chart(value, width = value, fill = "green", background = "#e1e1e1")
+                                                      },
+                       align = "left"),
+                       death_rate = reactable::colDef(name = "Death Rate",  
+                                                      minWidth = 50, maxWidth = 200,
+                                                      defaultSortOrder = "desc",
+                                                      cell = function(value) {
+                                                        # Format as percentages with 1 decimal place
+                                                        value <- paste0(format(round(value * 100, 2), nsmall = 1), "%")
+                                                        bar_chart(value, width = value, fill = "red", background = "#e1e1e1")
+                                                      },
+                       align = "left"))
+)
+
+htmltools::div(class = "standings",
+  htmltools::div(class = "title",
+    htmltools::h2("Total de número de casos Covid-19 por país"),
+   "Clique nas colunas para ordenar"
+  ),
+  tbl,
+  paste("Data last updated on")
+)
+
+```

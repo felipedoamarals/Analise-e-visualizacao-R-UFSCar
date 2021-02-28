@@ -1,0 +1,196 @@
+---
+title: "Homework_2"
+author: "Felipe do Amaral Silva"
+date: "13/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Chamando Package ggplot
+```{R}
+library(ggplot2)
+```
+## Questão 1)
+#Vericando as variáveis da base:
+```{R}
+data("USArrests")
+dados = USArrests
+names(dados)
+```
+
+#Variável: Murder
+```{R}
+#Histogram
+data("USArrests")
+dados = USArrests
+g1 = ggplot(data = dados) + geom_histogram(mapping = aes(x = Murder), fill = "pink")
+g1
+```
+```{R}
+#Box-plot
+ggplot(data = USArrests) + geom_boxplot(mapping = aes(x = 1, y = Murder), fill = 'pink')
+```
+
+
+#Variável: Assault
+```{R}
+#Histogram
+data("USArrests")
+dados = USArrests
+g2 = ggplot(data = dados) + geom_histogram(mapping = aes(x = Assault), fill = "blue")
+g2
+```
+```{R}
+#Box-plot
+ggplot(data = USArrests) + geom_boxplot(mapping = aes(x = 1, y = Assault), fill = 'blue')
+```
+
+#Variável: UrbanPop
+```{R}
+#Histogram
+data("USArrests")
+dados = USArrests
+g3 = ggplot(data = dados) + geom_histogram(mapping = aes(x = UrbanPop), fill = "red")
+g3
+```
+```{R}
+#Box-plot
+ggplot(data = USArrests) + geom_boxplot(mapping = aes(x = 1, y = UrbanPop), fill = 'red')
+```
+
+#Variável: Rape
+```{R}
+#Histogram
+data("USArrests")
+dados = USArrests
+g4 = ggplot(data = dados) + geom_histogram(mapping = aes(x = Rape), fill = "black")
+g4
+```
+```{R}
+#Box-plot
+ggplot(data = USArrests) + geom_boxplot(mapping = aes(x = 1, y = Rape), fill = 'pink')
+```
+
+## Questão 2)
+#Entender a relação entre o percentual da população urbana com o número de prisões por assassinato
+```{R}
+gq2 <- ggplot(USArrests, aes(y = Murder, x = UrbanPop)) +
+     geom_point()+geom_smooth(se = FALSE, method = "lm")
+gq2
+```
+
+## Questão 3)
+#Dataset Orange. Quantidade de laranjerias por circunferência
+```{R}
+gq3a = ggplot(data = Orange) +
+   geom_histogram(mapping = aes(x = circumference))
+gq3a
+```
+
+## Questão 4)
+#Dataset Orange. Entender a dispersão da circunferência do tronco com a idade das laranjeiras.
+```{R}
+gq4 <- ggplot(Orange, aes(x = age, y = circumference)) + geom_point()+geom_smooth(se = FALSE, method = "lm")
+gq4
+```
+
+## Questão 5)
+#Descrição das variáveis encontradas com o comando ?mpg:
+
+Variável | Descrição
+---------| ---------
+`manufacturer` | manufacturer name
+`model` | model name
+`displ` | engine displacement, in litres
+`year` | year of manufacture
+`cyl` | number of cylinders
+`trans` | type of transmission
+`drv` | the type of drive train, where f = front-wheel drive, r = rear wheel drive, 4 = 4wd
+`cty` | city miles per gallon
+`hwy` | highway miles per gallon
+`fl` | fuel type
+`class` | "type" of car
+
+```{R}
+#ver a dimensão do banco de dados
+dim(mpg)
+head(mpg) #seis primeiras linhas
+tail(mpg) #seis últimas linhas
+summary(mpg) #sumário estatístico do conjunto de dados
+names(mpg) #nomes das variáveis
+```
+
+## Questão 6)
+#Quanto maior cilindrada menos consumo de galão de combustível por milhas na estrada
+```{R}
+gq6 <- ggplot(mpg, aes(x = cyl, y = hwy)) + geom_point(color = 'red')+geom_smooth( method = "lm")
+gq6
+```
+
+## Questão 7)
+```{R}
+library(gridExtra)
+p1 <- ggplot(data=mpg, aes(x=displ)) + geom_histogram(fill='blue')
+p2 <- ggplot(data=mpg, aes(x=displ)) + geom_boxplot() 
+p3 <- ggplot(data=mpg, aes(y=manufacturer, x = cyl)) + geom_point(color="red")
+p4 <- ggplot(data=mpg, aes(y=manufacturer, x = cyl ))+ geom_boxplot()
+grid.arrange(p1, p2, p3, p4, ncol=2)
+```
+
+## Questão 8)
+```{R}
+#1.
+ggplot(data = mpg) + 
+    geom_point(mapping = aes(x = displ, y = hwy, color = class)) + 
+    facet_wrap(~ class, ncol=2)
+#2.
+ggplot(data = mpg) + 
+     geom_point(mapping = aes(x = cyl, y = drv, color = drv)) + 
+     facet_grid(drv ~ cyl)
+
+#3.
+#Color = cyl fica gradiente
+#. ~ cyl retira as linhas de comparações do drv
+```
+
+## Questão 9)
+```{R}
+#a)
+library(readxl)
+homework2 = read_excel("homework2.xlsx")
+p1 <- ggplot(homework2, aes(x = as.numeric(CPI), y = as.numeric(HDI), color = "Red")) + geom_point()
+p1
+
+#b)
+p1 <- ggplot(homework2, aes(x = as.numeric(CPI), y = as.numeric(HDI), color = Region)) + geom_point()
+p1
+
+#c)
+p1 <- ggplot(homework2, aes(x = as.numeric(CPI), y = as.numeric(HDI), color = Region)) + geom_point(size=3)
+p1
+
+#d)
+p1 <- ggplot(homework2, aes(x = as.numeric(CPI), y = as.numeric(HDI), color = Region)) + geom_point(aes(size=as.numeric(HDI)))
+p1
+
+#e)
+p1 <- ggplot(homework2, aes(x = as.numeric(CPI), y = as.numeric(HDI), color = Region)) + geom_point(aes(size=as.numeric(HDI))) + labs(x = 'Corruption Perceptions Index, 2011(10=least corrupt)', y = 'Human Development Index, 2011 (1=best)', title = 'Corruption and human development')
+p1
+
+#f)
+p2 <- ggplot(homework2, aes(x = as.numeric(CPI), y = as.numeric(HDI), color = Region)) + geom_point(shape = 1, size=3, stroke = 1.2) + labs(x = 'Corruption Perceptions Index, 2011(10=least corrupt)', y = 'Human Development Index, 2011 (1=best)', title = 'Corruption and human development')
+p3 <- p2 + geom_smooth(aes(group=1), method = 'lm', formula = y~log(x), se = FALSE, color= 'red')
+pointsToLabel <- c("Russia", "Venezuela", "Iraq", "Myanmar", "Sudan",
+                   "Afghanistan", "Congo", "Greece", "Argentina", "Brazil",
+                   "India", "Italy", "China", "South Africa", "Spane",
+                   "Botswana", "Cape Verde", "Bhutan", "Australia", "France",
+                   "United States", "Germany", "Britain", "Barbados", "Norway", "Japan",
+                   "New Zealand", "Singapore")
+p4 <- p3 + geom_text(aes(label=Country), color='gray20', data = subset(homework2, Country %in% pointsToLabel),check_overlap = TRUE)
+p5 <- p4 + theme_bw()
+library(ggthemes)
+p5 + theme_economist_white()
+```

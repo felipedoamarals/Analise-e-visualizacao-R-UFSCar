@@ -1,0 +1,133 @@
+---
+title: "Homework1"
+author: "Felipe do Amaral Silva"
+date: "27/09/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Homework_1
+
+```{r install, include=FALSE}
+#install.packages('knitr')
+#install.packages("rmarkdown")
+#install.packages("dplyr")
+#install.packages("tidyverse")
+#install.packages("caTools1.14")
+
+library(knitr)
+library(rmarkdown)
+library(dplyr)
+library(tidyverse)
+#library(caTools1.14)
+
+setwd("C:/Users/felip/OneDrive/Estudos/Estatística para Data Science usando R - UFSCar/Scripts")
+```
+
+### Questão 1) 
+```{R}
+45*3
+55/10
+46-9
+```
+### Operadores matemáticos utilizados:
+- Multiplicação: *
+- Divisão: /
+- Subtração: -
+
+### Questão 2)
+Instalar um pacote:
+```
+install.package('Brasil')
+```
+Carregar pacote:
+```
+library(Brasil)
+```
+Acessando documentação do Pacote. Também ser realizado buscas em foruns como Stack Overflow
+```
+??dplyr
+```
+
+### Questão 3) 
+Para criar um chuck utilize:
+```
+#Abre com 3 crases e fecha com 3 crases. Ex: ``` ```
+```
+Opções para usar o Knit:
+```
+#Pode ser acionado via o caminho: File > knit document ou pelo atalho ctrl+shift+k
+```
+
+### Questão 4)
+O resultado abaixo mostra que sem aspas armazenar váriaveis do tipo Inteiro e com aspas String
+```{R}
+vetor = c(2,2,2)
+vetor
+vetor2 = c("2,2,2","texto")
+vetor2
+```
+
+### Questão 5)
+Vetor > 1 e < 1000 e vetorpar
+```{R}
+vetor = seq(2,999)
+vetor
+vetorpar = seq(2,999,2)
+vetorpar
+```
+
+### Questão 6)
+Cálculo do número de ouro no R:
+```{R}
+(1 + sqrt(5))/2
+```
+
+### Questão 7)
+Divisão 1 por 0:
+```{R}
+1 / 0
+-1 / 0
+```
+
+### Questão 8)
+Null é como se o objeto não existisse. Vazio no R:
+```{R}
+nulo = NULL
+```
+NaN Significa Not A Number. Resultado de uma operação matemática inválida:
+```{R}
+0/0
+```
+Inf é o resultado de quando uma operação matemática é infinita
+```{R}
+1/0
+```
+Na Not Availlable. Indica principalmente valores faltantes:
+```{R}
+as.numeric(c("1","2","3","a"))
+```
+
+### Questão 9)
+Porque o resultado da parte esquerda dá 14.
+```{R}
+5 + 3 * 10 %/%3 == 15
+5 + (3 * 10) %/%3 == 15
+```
+
+### Questão 10)
+```{R}
+for (i in 1:7) {
+  print(i^3)
+  
+}
+```
+
+### Questão 11)
+```{R}
+getwd()
+```

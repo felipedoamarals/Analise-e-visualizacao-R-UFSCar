@@ -1,0 +1,102 @@
+---
+title: "Homework_4"
+author: "Felipe do Amaral Silva"
+date: "21/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+### Biblotecas e base de dados
+```{R}
+#install.packages('nycflights13')
+library(nycflights13)
+library(dplyr)
+nycflights13::flights
+```
+
+### 1 - Utilizando o mesmo conjunto de dados para flights usado na aula, encontre todos os vôos que:
+(a) Tiveram um atraso na chegada (arrival) de duas horas ou mais.
+```{R}
+#Os dados estão em minutos
+v_atrasados=filter(flights, arr_delay >= 120)
+v_atrasados
+```
+(b) Voaram com destino a Houston (IAH ou HOU)
+```{R}
+v_destino = filter(flights, dest == "IAH" | dest == "HOU")
+v_destino
+```
+(c) Foram realizados pelas companhias aéreas United, American ou Delta Airlines.
+```{R}
+#Na tabela Airlines foi confirmado o nome de cada companhia
+v_realizados = filter(flights, carrier == "UA" | carrier == "AA" | carrier == "DL")
+v_realizados
+```
+(d) Partiram no verão (julho, agosto e setembro).
+```{R}
+v_verao = filter(flights, month == 7 | month == 8 | month == 9)
+v_verao
+```
+(e) Não partiram atrasados, porém chegaram com mais de duas horas de atraso ao destino.
+```{R}
+v_atrasados2=filter(flights, dep_time == sched_dep_time , arr_delay >= 120)
+v_atrasados2
+```
+(f) Partiram entre meia noite e 6 h da manhã (inclusive).
+```{R}
+v_part_00e06 = filter(flights, hour >= 00 | hour <=6 )
+v_part_00e06
+```
+### 2 - Classifique os vôos para encontrar os vôos mais atrasados.
+```{R}
+v_maisatrasados = arrange(flights, desc(arr_delay))
+v_maisatrasados
+```
+### 3 - Classifique os vôos de forma a encontrar os mais rápidos (velocidade mais alta).
+```{R}
+v_maisrapido = mutate(flights,
+        ganho = dep_delay - arr_delay,
+        velocidade = distance / air_time * 60)
+arrange(v_maisrapido, desc(velocidade))
+
+```
+### 4 - O que acontece se você incluir o nome de uma variável várias vezes dentro de select()?
+```{R}
+#Ele trás a coluna referida apenas uma vez.
+select(flights, flight, flight,flight,flight)
+```
+### 5 - Encontre os 10 vôos mais atrados usando arrange() e a função min_rank(). Leia a documentção de min_rank() para aprender sobre ele.
+```{R}
+v_maisatrasadosrank = arrange(flights, desc(arr_delay))
+v_rank10atrasados = v_maisatrasadosrank %>% select(flight,arr_delay)%>%
+  group_by(flight)%>%
+  mutate(rank = min_rank(desc(arr_delay)))%>%
+  arrange(rank)
+v_rank10atrasados
+```
+### 6 - Usando mutate() crie uma coluna com a média da variável tempo em ar (air time).
+```{R}
+v_temponoar = flights %>% mutate(media_temponoar = mean(air_time, na.rm = TRUE))
+v_temponoar
+```
+### 7 - Verifique a coluna com dep time. Ela não fornece uma variável em tempo contínuo. Converta essa coluna para uma representação mais apropriada de número de minutos a partir da meia-noite.
+```{R}
+colunaemminutos = flights %>% transmute(flights,dep_time,
+          hour = dep_time %/% 100,
+          minute = dep_time %% 100,dep_time_minutos = ((hour*60) + minute)
+)%>%arrange(desc(minute))
+colunaemminutos
+```
+### 8 - Verifique qual companhia aérea tem os piores atrasos.
+```{R}
+v_maisatrasadosrank = arrange(flights, desc(arr_delay))
+comp_atrasadas = v_maisatrasadosrank %>% select(carrier,arr_delay)%>%
+    group_by(carrier)%>%
+    mutate(rank = min_rank(desc(arr_delay)))%>%
+    arrange(rank)
+comp_atrasadas
+comp_maisatrasadas = comp_atrasadas %>% count(carrier, sort = TRUE)
+comp_maisatrasadas
+```

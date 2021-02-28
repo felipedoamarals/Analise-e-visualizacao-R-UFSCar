@@ -1,0 +1,39 @@
+---
+title: "Homework_5"
+author: "Felipe do Amaral Silva"
+date: "06/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Bibliotecas
+```{r, echo=FALSE}
+#install.packages("gtrendsR")
+library(gtrendsR)
+library(ggplot2)
+library(dplyr)
+```
+A palavra utilizada para a atividade será "Eleições EUA". Afim de entender o interesse dos brasileiros durante todo o período de funcionamento do buscador Google referentes as eleições dos Estados Unidos. Faremos também uma comparação com a busca sobre a palavra "Elections" pelos americanos.
+
+```{R}
+#Definindo as palavras
+eleicoeseua <- gtrends(c("elections", "eleições eua"), 
+#Escolhendo área geografica: Estados Unidos e Brasil
+geo = c("US", "BR"), 
+#Escolhendo o período
+time = "all")
+```
+Plotando
+```{R}
+plot(eleicoeseua)
+```
+
+```{R}
+time_trend=eleicoeseua$interest_over_time
+plot<-ggplot(data=time_trend, aes(x=date, y=hits,group=keyword,col=keyword))+
+        geom_line()+xlab('Time')+ylab('Interesse relativo')+ theme_bw()+
+        theme(legend.title = element_blank(),legend.position="bottom",legend.text=element_text(size=12))+ggtitle("Busca no Google sobre eleições nos EUA, por americanos e brasileiros.")
+plot
+```
